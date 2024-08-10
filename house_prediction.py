@@ -74,6 +74,8 @@ growth_rates = {
     'Net non-permanent residents': 0.01,  # 1% per year
     'Net temporary emigration': 0.01,  # 1% per year
     'Returning emigrants': 0.01,  # 1% per year
+    'Average income excluding zeros': 0.02,  # 2% per year
+    'Median income excluding zeros': 0.015,  # 1.5% per year
 }
 
 # Get features
@@ -118,6 +120,8 @@ def get_features(house_type, province, area):
         'Net non-permanent residents': [latest_data['Net non-permanent residents']],
         'Net temporary emigration': [latest_data['Net temporary emigration']],
         'Returning emigrants': [latest_data['Returning emigrants']],
+        'Average income excluding zeros': [latest_data['Average income excluding zeros']],
+        'Median income excluding zeros': [latest_data['Median income excluding zeros']],
         'HPI': [latest_data['HPI']]
     })
 
