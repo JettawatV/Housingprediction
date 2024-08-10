@@ -64,35 +64,35 @@ def get_features(house_type, province, area):
             return None
     
     # Create a DataFrame with the required features
-  return pd.DataFrame({
-        'House_Type': [house_type],
-        'Province': [province],
-        'Area': [area],
-        'Average income excluding zeros': [latest_data['Average income excluding zeros']],
-        'Median income excluding zeros': [latest_data['Median income excluding zeros']],
-        'Prime rate': [latest_data['Prime rate']],
-        '5-year personal fixed term': [latest_data['5-year personal fixed term']],
-        'Employment': [latest_data['Employment']],
-        'Employment rate': [latest_data['Employment rate']],
-        'Labour force': [latest_data['Labour force']],
-        'Population': [latest_data['Population']],
-        'Unemployment': [latest_data['Unemployment']],
-        'Unemployment rate': [latest_data['Unemployment rate']],
-        'All-items': [latest_data['All-items']],
-        'Gasoline': [latest_data['Gasoline']],
-        'Goods': [latest_data['Goods']],
-        'Household operations, furnishings and equipment': [latest_data['Household operations, furnishings and equipment']],
-        'Shelter': [latest_data['Shelter']],
-        'Transportation': [latest_data['Transportation']],
-        'Emigrants': [latest_data['Emigrants']],
-        'Immigrants': [latest_data['Immigrants']],
-        'Net emigration': [latest_data['Net emigration']],
-        'Net non-permanent residents': [latest_data['Net non-permanent residents']],
-        'Net temporary emigration': [latest_data['Net temporary emigration']],
-        'Returning emigrants': [latest_data['Returning emigrants']],
-        'Benchmark': [latest_data['Benchmark']],
-        'HPI': [latest_data['HPI']]
-    })
+      return pd.DataFrame({
+            'House_Type': [house_type],
+            'Province': [province],
+            'Area': [area],
+            'Average income excluding zeros': [latest_data['Average income excluding zeros']],
+            'Median income excluding zeros': [latest_data['Median income excluding zeros']],
+            'Prime rate': [latest_data['Prime rate']],
+            '5-year personal fixed term': [latest_data['5-year personal fixed term']],
+            'Employment': [latest_data['Employment']],
+            'Employment rate': [latest_data['Employment rate']],
+            'Labour force': [latest_data['Labour force']],
+            'Population': [latest_data['Population']],
+            'Unemployment': [latest_data['Unemployment']],
+            'Unemployment rate': [latest_data['Unemployment rate']],
+            'All-items': [latest_data['All-items']],
+            'Gasoline': [latest_data['Gasoline']],
+            'Goods': [latest_data['Goods']],
+            'Household operations, furnishings and equipment': [latest_data['Household operations, furnishings and equipment']],
+            'Shelter': [latest_data['Shelter']],
+            'Transportation': [latest_data['Transportation']],
+            'Emigrants': [latest_data['Emigrants']],
+            'Immigrants': [latest_data['Immigrants']],
+            'Net emigration': [latest_data['Net emigration']],
+            'Net non-permanent residents': [latest_data['Net non-permanent residents']],
+            'Net temporary emigration': [latest_data['Net temporary emigration']],
+            'Returning emigrants': [latest_data['Returning emigrants']],
+            'Benchmark': [latest_data['Benchmark']],
+            'HPI': [latest_data['HPI']]
+        })
 
 # Streamlit app layout
 st.title('Benchmark Value Predictor')
