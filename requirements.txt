@@ -2,4 +2,4 @@ xgboost
 numpy
 pandas
 datetime
-sklearn
+scikit-learn
