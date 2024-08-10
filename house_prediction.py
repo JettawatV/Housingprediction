@@ -84,20 +84,24 @@ def get_features(house_type, province, area):
 
 input_data = get_features(house_type, province, area)
 
-# Ensure input data is not None
-if input_data is not None:
-    try:
-        # Preprocess the input data
-        input_data_processed = preprocessor.transform(input_data)
-        
-        # Make prediction
-        prediction = model.predict(input_data_processed)
-        
-        # Display prediction
-        st.write(f'Predicted Benchmark Value: {prediction[0]}')
-    except Exception as e:
-        st.error(f'Error making prediction: {e}')
-else:
-    st.error('Error: Input data is None.')
+# Predict button
+if st.button('Predict Benchmark Value'):
+    if input_data is not None:
+        try:
+            # Check if preprocessor is already fitted
+            if not hasattr(preprocessor, 'transformers_'):
+                st.error('Preprocessor is not fitted yet. Please fit the preprocessor before using it.')
+            else:
+                # Preprocess the input data
+                input_data_processed = preprocessor.transform(input_data)
 
-# Streamlit app ends here
+                # Make prediction
+                prediction = model.predict(input_data_processed)
+
+                # Display prediction
+                st.write(f'Predicted Benchmark Value: {prediction[0]}')
+        except Exception as e:
+            st.error(f'Error making prediction: {e}')
+    else:
+        st.error('Error: Input data is None.')
+
