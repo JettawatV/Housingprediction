@@ -1,31 +1,29 @@
 import streamlit as st
 import pandas as pd
-import joblib
 import zipfile
 import pickle
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.impute import SimpleImputer,KNNImputer
 import xgboost as xgb
-
-
-
 
 # Function to load the compressed model
 def load_zip_pipeline(zip_path, file_name):
     with zipfile.ZipFile(zip_path, 'r') as z:
         with z.open(file_name) as f:
-            pipeline = pickle.load(f)
-    return pipeline
+            model = pickle.load(f)
+    return model
 
 # Load your dataset (update with your dataset path)
 dataset = pd.read_csv('housing.csv')  # Replace with the correct path to your dataset
 
-# Load the saved XGBoost model pipeline
-pipeline = load_zip_pipeline('xgboost_pipeline.zip','xgboost_pipeline.pkl')
+# Load the saved XGBoost model and preprocessor
+model = load_zip_pipeline('xgboost_pipeline.zip','xgboost_pipeline.pkl')
+
 with open('preprocessor.pkl', 'rb') as f:
     preprocessor = pickle.load(f)
+
+# Define feature categories
 numeric_features = [
     'Average income excluding zeros', 'Median income excluding zeros', 'Prime rate',
     '5-year personal fixed term', 'Employment', 'Employment rate', 'Labour force',
@@ -36,12 +34,6 @@ numeric_features = [
 
 categorical_features = ['House_Type', 'Area', 'Province']
 
-# Verify if the loaded object is a pipeline
-if not hasattr(pipeline, 'predict'):
-    st.error('Loaded object is not a valid scikit-learn pipeline or model.')
-else:
-    st.success('Model loaded successfully.')
-
 # Streamlit app code
 st.title('Housing Benchmark Prediction')
 
@@ -50,7 +42,7 @@ house_type = st.selectbox('Select House Type', dataset['House_Type'].unique())
 province = st.selectbox('Select Province', dataset['Province'].unique())
 area = st.selectbox('Select Area', dataset['Area'].unique())
 
-# Get features
+# Function to get features based on user input
 def get_features(house_type, province, area):
     # Filter dataset based on user input
     filtered_data = dataset[
@@ -94,28 +86,22 @@ def get_features(house_type, province, area):
         'Net non-permanent residents': [latest_data['Net non-permanent residents']],
         'Net temporary emigration': [latest_data['Net temporary emigration']],
         'Returning emigrants': [latest_data['Returning emigrants']],
-        'Benchmark': [latest_data['Benchmark']],
-        'HPI': [latest_data['HPI']]
     })
 
+# Get input data based on user selection
 input_data = get_features(house_type, province, area)
-input_data_processed = preprocessor.transform(input_data)
 
 # Predict button
 if st.button('Predict Benchmark Value'):
     if input_data is not None:
-        if hasattr(pipeline, 'predict'):
-            try:
-                # Make prediction
-                # Split the dataset into features and target variable
-                X = input_data[numeric_features + categorical_features]
-                y = input_data['Benchmark']  # Assuming 'Benchmark' is your target variable
-                pipeline.fit(X,y)
-                prediction = pipeline.predict(input_data)
-                st.write(f'Predicted Benchmark Value: {prediction[0]}')
-            except Exception as e:
-                st.error(f'Error making prediction: {e}')
-        else:
-            st.error('Error: Loaded object is not a valid scikit-learn pipeline or model.')
+        try:
+            # Transform input data using the preprocessor
+            input_data_processed = preprocessor.transform(input_data)
+            
+            # Make prediction
+            prediction = model.predict(input_data_processed)
+            st.write(f'Predicted Benchmark Value: {prediction[0]}')
+        except Exception as e:
+            st.error(f'Error making prediction: {e}')
     else:
         st.error('Error: Input data is None.')
