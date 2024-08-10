@@ -18,7 +18,7 @@ with open('preprocessor.pkl', 'rb') as f:
     preprocessor = pickle.load(f)
 
 model = load_zip_pipeline('xgboost_pipeline.zip', 'xgboost_pipeline.pkl')
-
+dataset = pd.read_csv('housing.csv')  
 # Load average percentage increase dataset
 average_increase = pd.read_csv('average_increase.csv')  # Replace with your file path
 
