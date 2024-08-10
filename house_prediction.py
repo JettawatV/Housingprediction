@@ -97,7 +97,8 @@ def get_features(house_type, province, area):
         'Net emigration': [latest_data['Net emigration']],
         'Net non-permanent residents': [latest_data['Net non-permanent residents']],
         'Net temporary emigration': [latest_data['Net temporary emigration']],
-        'Returning emigrants': [latest_data['Returning emigrants']]
+        'Returning emigrants': [latest_data['Returning emigrants']],
+        'HPI': [latest_data['HPI']]
     })
 
 input_data = get_features(house_type, province, area)
