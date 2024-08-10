@@ -1,67 +1,93 @@
-import streamlit as st
-import numpy as np
-import pandas as pd
-import xgboost as xgb
-from datetime import datetime
-from sklearn.preprocessing import QuantileTransformer
-from sklearn.impute import KNNImputer
+# Function to load the compressed model
+def load_zip_pipeline(zip_path, file_name):
+    with zipfile.ZipFile(zip_path, 'r') as z:
+        with z.open(file_name) as f:
+            pipeline = pickle.load(f)
+    return pipeline
 
-# Load your pre-trained XGBoost model
-# (Ensure you have trained and saved the model earlier)
-DataFrame = pd.read_csv("Full Data with Date.csv")
-model = xgb.XGBRegressor(colsample_bytree=1.0, learning_rate=0.1, max_depth=10, n_estimators=500, subsample=1.0)
-model.load_model('xgboost_model.json')  # Load the model from a file
+# Load your dataset
+dataset = pd.read_csv('housing.csv')  # Update with your dataset path
 
-# Sample input data structure
-# (In practice, replace with your dataset's structure)
-areas = ["GREATER_VANCOUVER", "LOWER_MAINLAND", "OAKVILLE_MILTON","FRASER_VALLEY","MISSISSAUGA","GREATER_TORONTO"
-         ,"VICTORIA","CHILLIWACK_AND_DISTRICT","HAMILTON_BURLINGTON","GUELPH_AND_DISTRICT","KITCHENER_WATERLOO",
-         "BARRIE_AND_DISTRICT","CAMBRIDGE","INTERIOR_BC","LAKELANDS","VANCOUVER_ISALAND","BRANTFORD_REGION",
-         "NORTHUMBERLAND_HILLS","WOODSTOCK_INGERSOLL","LONDON_ST_THOMAS","NIAGARA_REGION","KAWARTHA_LAKES",
-         "PETERBOROUGH_AND_KAWARTHAS","WINDSOR_ESSEX","MONTREAL_CMA","CALGARY","RIDEAU_ST_LAWRENCE","QUINTE_AND_DISTRICT",
-         "HURON_PERTH","SIMCOE_AND_DISTRICT","KINGSTON_AND_AREA","GREY_BRUCE_OWEN_SOUND","TILLSONBURG_DISTRICT",
-         "BANCROFT_AND_AREA","HALIFAX_DARTMOUTH","SASKATOON","EDMONTON","SUDBURY","QUEBEC_CMA","ESTRIE","NORTH_BAY",
-         "WINNIPEG","REGINA","GREATER_MONCTON","ST_JOHNS_NL","SAINT_JOHN_NB","SAULT_STE_MARIE","FREDERICTON","MAURICIE",
-         "CENTRE_DU_QUEBEC"]
-house_types = ["Apartment", "Composite", "Type3","One_Storey","Two_Storey","Single_Family","Townhouse"]
-provinces = ["BC", "ON", "AB","MB","NB","NL","NS","QC","SK"]
+# Load the saved XGBoost model pipeline
+zip_path = 'xgboost_pipeline.zip'  # Compressed file path
+pipeline_file_name = 'xgboost_pipeline.pkl'
+pipeline = load_zip_pipeline(zip_path, pipeline_file_name)
 
-# Set up Streamlit app
-st.title("House Price Benchmark Predictor")
-
-# Input section
-house_type = st.selectbox("Select House Type", house_types)
-province = st.selectbox("Select Province", provinces)
-area = st.selectbox("Select Area", areas)
-years = st.slider("Select Number of Years to Predict", 1, 10)
-
-# Predict button
-if st.button("Predict Benchmark Value"):
-    # Example input features based on user input
-    # Replace with your actual feature preparation
-    input_data = pd.DataFrame({
+# Function to get features for prediction based on user input
+def get_features(house_type, province, area):
+    # Filter dataset based on user input
+    filtered_data = dataset[
+        (dataset['House_Type'] == house_type) &
+        (dataset['Province'] == province) &
+        (dataset['Area'] == area)
+    ]
+    
+    # Handle case where no data is found
+    if filtered_data.empty:
+        st.error('No data available for the selected inputs.')
+        return None
+    
+    # Get the most recent HPI and other features
+    latest_data = filtered_data.iloc[-1]
+    
+    # Create a DataFrame with the required features
+    return pd.DataFrame({
         'House_Type': [house_type],
         'Province': [province],
         'Area': [area],
-        'Date_Id': [datetime.now().year + i for i in range(years)]
+        'Benchmark': [latest_data['Benchmark']],
+        'HPI': [latest_data['HPI']],
+        'Aggregate income': [latest_data['Aggregate income']],
+        'Average income excluding zeros': [latest_data['Average income excluding zeros']],
+        'Median income excluding zeros': [latest_data['Median income excluding zeros']],
+        'Number with income': [latest_data['Number with income']],
+        'Prime rate': [latest_data['Prime rate']],
+        '5-year personal fixed term': [latest_data['5-year personal fixed term']],
+        'Employment': [latest_data['Employment']],
+        'Employment rate': [latest_data['Employment rate']],
+        'Labour force': [latest_data['Labour force']],
+        'Population': [latest_data['Population']],
+        'Unemployment': [latest_data['Unemployment']],
+        'Unemployment rate': [latest_data['Unemployment rate']],
+        'All-items': [latest_data['All-items']],
+        'Gasoline': [latest_data['Gasoline']],
+        'Goods': [latest_data['Goods']],
+        'Household operations, furnishings and equipment': [latest_data['Household operations, furnishings and equipment']],
+        'Shelter': [latest_data['Shelter']],
+        'Transportation': [latest_data['Transportation']],
+        'Emigrants': [latest_data['Emigrants']],
+        'Immigrants': [latest_data['Immigrants']],
+        'Net emigration': [latest_data['Net emigration']],
+        'Net non-permanent residents': [latest_data['Net non-permanent residents']],
+        'Net temporary emigration': [latest_data['Net temporary emigration']],
+        'Returning emigrants': [latest_data['Returning emigrants']],
+        'Date_Id': [latest_data['Date_Id']],
+        # Add other features here as needed
     })
 
-    # Example transformation steps (replace with your actual preprocessing)
-    imputer = KNNImputer(n_neighbors=5)
-    scaler = QuantileTransformer(output_distribution='normal')
-    input_data = imputer.fit_transform(input_data)
-    input_data = scaler.fit_transform(input_data)
+# Streamlit app layout
+st.title('Benchmark Value Predictor')
 
-    # Make predictions
-    predictions = model.predict(input_data)
+# User input fields
+house_type = st.selectbox('House Type', dataset['House_Type'].unique())
+province = st.selectbox('Province', dataset['Province'].unique())
+area = st.selectbox('Area', dataset['Area'].unique())
+years = st.slider("Select Number of Years to Predict", 1, 10)
 
-    # Display predictions
-    st.write(f"Predicted Benchmark Values for the next {years} years:")
-    for i, value in enumerate(predictions, 1):
-        st.write(f"Year {datetime.now().year + i}: {value:.2f}")
+# Fetch features for prediction
+input_data = get_features(house_type, province, area)
 
+if input_data is not None:
+    # Make prediction
+    prediction = pipeline.predict(input_data)
+    
+    # Display prediction results
+    st.write(f'Predicted Benchmark Value for the next {years} years:')
+    for i in range(years):
+        st.write(f'Year {datetime.now().year + i + 1}: ${prediction[0]:,.2f}')
+    
     # Optional: Plot the predictions over time
-    st.line_chart(predictions)
+    st.line_chart([prediction[0]] * years)  # Adjust if you have a range of predictions
 
 # Footer
-st.write("© 2024 House Price Benchmark Predictor")
+st.write("© 2024 Benchmark Value Predictor")
