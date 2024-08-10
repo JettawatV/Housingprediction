@@ -91,7 +91,8 @@ def get_features(house_type, province, area):
             'Net temporary emigration': [latest_data['Net temporary emigration']],
             'Returning emigrants': [latest_data['Returning emigrants']],
             'Benchmark': [latest_data['Benchmark']],
-            'HPI': [latest_data['HPI']]
+            'HPI': [latest_data['HPI']],
+            'Date_Id': [latest_data['Date_Id']]
              })
 
 # Streamlit app layout
