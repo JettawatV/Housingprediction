@@ -64,7 +64,7 @@ def get_features(house_type, province, area):
             return None
     
     # Create a DataFrame with the required features
-      return pd.DataFrame({
+    return pd.DataFrame({
             'House_Type': [house_type],
             'Province': [province],
             'Area': [area],
@@ -92,7 +92,7 @@ def get_features(house_type, province, area):
             'Returning emigrants': [latest_data['Returning emigrants']],
             'Benchmark': [latest_data['Benchmark']],
             'HPI': [latest_data['HPI']]
-        })
+             })
 
 # Streamlit app layout
 st.title('Benchmark Value Predictor')
