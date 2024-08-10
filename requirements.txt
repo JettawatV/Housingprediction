@@ -4,3 +4,5 @@ pandas
 datetime
 scikit-learn
 joblib
+zipfile
+pickle
