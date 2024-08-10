@@ -96,6 +96,7 @@ if st.button('Predict Benchmark Value'):
         if hasattr(pipeline, 'predict'):
             try:
                 # Make prediction
+                pipeline.fit(input_data)
                 prediction = pipeline.predict(input_data)
                 st.write(f'Predicted Benchmark Value: {prediction[0]}')
             except Exception as e:
