@@ -108,7 +108,6 @@ if st.button('Predict Benchmark Value'):
     if input_data is not None:
         if average_increase_percentage is not None:
             try:
-                # Make initial prediction
                 predictions = []
                 for year in range(1, years + 1):
                     # Adjust features for each year (e.g., applying growth factors)
@@ -116,8 +115,10 @@ if st.button('Predict Benchmark Value'):
                     input_data_adjusted['Population'] *= (1 + 0.01 * year)  # 1% growth per year
                     input_data_adjusted['Average income excluding zeros'] *= (1 + 0.02 * year)  # 2% growth per year
                     input_data_adjusted['Median income excluding zeros'] *= (1 + 0.015 * year)  # 1.5% growth per year
-                    input_data_adjusted['HPI'] *= (1 + average_increase_percentage * year)  # Apply average increase
+                    input_data_adjusted['HPI'] *= (1 + average_increase_percentage / 100)  # Apply average increase (as a percentage)
                     
+                    st.write(f'Adjusted HPI for year {year}: {input_data_adjusted["HPI"].values[0]}')
+
                     # Preprocess the adjusted input data
                     input_data_processed = preprocessor.transform(input_data_adjusted)
 
