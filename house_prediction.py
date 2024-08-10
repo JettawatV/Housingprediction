@@ -36,6 +36,9 @@ house_type = st.selectbox('Select House Type', dataset['House_Type'].unique())
 province = st.selectbox('Select Province', dataset['Province'].unique())
 area = st.selectbox('Select Area', dataset['Area'].unique())
 
+# Slider for number of years to predict into the future
+years = st.slider('Select number of years to predict into the future', 1, 10, 1)
+
 # Get features
 def get_features(house_type, province, area):
     # Filter dataset based on user input
@@ -94,14 +97,22 @@ if st.button('Predict Benchmark Value'):
             else:
                 # Preprocess the input data
                 input_data_processed = preprocessor.transform(input_data)
+                
+                # Initialize an empty list to store predictions
+                future_predictions = []
+                
+                # Make predictions for each year in the future
+                for year in range(1, years + 1):
+                    prediction = model.predict(input_data_processed)
+                    future_predictions.append(prediction[0])
+                    # Optionally, update input_data_processed to account for changes in features over time
+                    # For simplicity, we're assuming the features remain constant over time
 
-                # Make prediction
-                prediction = model.predict(input_data_processed)
-
-                # Display prediction
-                st.write(f'Predicted Benchmark Value: {prediction[0]}')
+                # Display predictions
+                for i, prediction in enumerate(future_predictions):
+                    st.write(f'Predicted Benchmark Value for year {i+1}: {prediction}')
+                    
         except Exception as e:
             st.error(f'Error making prediction: {e}')
     else:
         st.error('Error: Input data is None.')
-
