@@ -112,16 +112,24 @@ if st.button('Predict Benchmark Value'):
                 for year in range(1, years + 1):
                     # Adjust features for each year (e.g., applying growth factors)
                     input_data_adjusted = input_data.copy()
-                    input_data_adjusted['Population'] *= (1 + 0.01 * year)  # 1% growth per year
-                    input_data_adjusted['Average income excluding zeros'] *= (1 + 0.02 * year)  # 2% growth per year
-                    input_data_adjusted['Median income excluding zeros'] *= (1 + 0.015 * year)  # 1.5% growth per year
+                    
+                    # Apply percentage increases
+                    input_data_adjusted['Population'] *= (1 + 0.01)  # 1% growth
+                    input_data_adjusted['Average income excluding zeros'] *= (1 + 0.02)  # 2% growth
+                    input_data_adjusted['Median income excluding zeros'] *= (1 + 0.015)  # 1.5% growth
                     input_data_adjusted['HPI'] *= (1 + average_increase_percentage / 100)  # Apply average increase (as a percentage)
                     
-                    st.write(f'Adjusted HPI for year {year}: {input_data_adjusted["HPI"].values[0]}')
-
+                    # Debug output
+                    st.write(f'Year {year} Adjusted Data:')
+                    st.write(input_data_adjusted)
+                    
                     # Preprocess the adjusted input data
                     input_data_processed = preprocessor.transform(input_data_adjusted)
-
+                    
+                    # Debug output
+                    st.write(f'Processed Data for Year {year}:')
+                    st.write(input_data_processed)
+                    
                     # Make prediction for the adjusted data
                     prediction = model.predict(input_data_processed)[0]
                     
