@@ -24,7 +24,7 @@ dataset = pd.read_csv('housing.csv')  # Replace with the correct path to your da
 
 # Load the saved XGBoost model pipeline
 pipeline = load_zip_pipeline('xgboost_pipeline.zip','xgboost_pipeline.pkl')
-
+preprocessor = "preprocessor.pkl"
 numeric_features = [
     'Average income excluding zeros', 'Median income excluding zeros', 'Prime rate',
     '5-year personal fixed term', 'Employment', 'Employment rate', 'Labour force',
@@ -98,6 +98,7 @@ def get_features(house_type, province, area):
     })
 
 input_data = get_features(house_type, province, area)
+input_data_processed = preprocessor.transform(input_data)
 
 # Predict button
 if st.button('Predict Benchmark Value'):
