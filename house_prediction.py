@@ -13,14 +13,14 @@ def load_zip_pipeline(zip_path, file_name):
             model = pickle.load(f)
     return model
 
-# Load your dataset (update with your dataset path)
-dataset = pd.read_csv('housing.csv')  # Replace with the correct path to your dataset
-
 # Load the preprocessor and model
 with open('preprocessor.pkl', 'rb') as f:
     preprocessor = pickle.load(f)
 
 model = load_zip_pipeline('xgboost_pipeline.zip', 'xgboost_pipeline.pkl')
+
+# Load average percentage increase dataset
+average_increase = pd.read_csv('average_increase.csv')  # Replace with your file path
 
 # Verify if the loaded object is a valid model
 if not hasattr(model, 'predict'):
@@ -36,8 +36,8 @@ house_type = st.selectbox('Select House Type', dataset['House_Type'].unique())
 province = st.selectbox('Select Province', dataset['Province'].unique())
 area = st.selectbox('Select Area', dataset['Area'].unique())
 
-# Slider for number of years to predict into the future
-years = st.slider('Select number of years to predict into the future', 1, 10, 1)
+# Slider for number of years
+years = st.slider('Select Number of Years to Predict', min_value=1, max_value=10, value=1)
 
 # Get features
 def get_features(house_type, province, area):
@@ -95,28 +95,28 @@ if st.button('Predict Benchmark Value'):
             if not hasattr(preprocessor, 'transformers_'):
                 st.error('Preprocessor is not fitted yet. Please fit the preprocessor before using it.')
             else:
-                # Initialize an empty list to store predictions
-                future_predictions = []
-                
-                # Make predictions for each year in the future
-                for year in range(1, years + 1):
-                    # Adjust features for each year (e.g., applying growth factors)
-                    input_data_adjusted = input_data.copy()
-                    input_data_adjusted['Population'] *= (1 + 0.01 * year)  # 1% growth per year
-                    input_data_adjusted['Average income excluding zeros'] *= (1 + 0.02 * year)  # 2% growth per year
-                    input_data_adjusted['Median income excluding zeros'] *= (1 + 0.015 * year)  # 1.5% growth per year
-                    
-                    # Preprocess the input data
-                    input_data_processed = preprocessor.transform(input_data_adjusted)
-                    
-                    # Make prediction
-                    prediction = model.predict(input_data_processed)
-                    future_predictions.append(prediction[0])
+                # Preprocess the input data
+                input_data_processed = preprocessor.transform(input_data)
 
-                # Display predictions
-                for i, prediction in enumerate(future_predictions):
-                    st.write(f'Predicted Benchmark Value for year {i+1}: {prediction}')
-                    
+                # Make initial prediction
+                initial_prediction = model.predict(input_data_processed)[0]
+                
+                # Calculate adjusted prediction based on percentage increase
+                avg_increase_row = average_increase[
+                    (average_increase['House_Type'] == house_type) &
+                    (average_increase['Area'] == area) &
+                    (average_increase['Province'] == province)
+                ]
+
+                if not avg_increase_row.empty:
+                    avg_increase = avg_increase_row['Percentage_Increase'].values[0]
+                    adjusted_prediction = initial_prediction * ((1 + avg_increase / 100) ** years)
+                else:
+                    st.error('No average percentage increase data available for the selected inputs.')
+                    adjusted_prediction = initial_prediction
+
+                # Display prediction
+                st.write(f'Predicted Benchmark Value for year {years}: {adjusted_prediction:.2f}')
         except Exception as e:
             st.error(f'Error making prediction: {e}')
     else:
