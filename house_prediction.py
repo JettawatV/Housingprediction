@@ -114,10 +114,10 @@ if st.button('Predict Benchmark Value'):
                     input_data_adjusted = input_data.copy()
                     
                     # Apply percentage increases
-                    input_data_adjusted['Population'] *= (1 + 0.01)  # 1% growth
-                    input_data_adjusted['Average income excluding zeros'] *= (1 + 0.02)  # 2% growth
-                    input_data_adjusted['Median income excluding zeros'] *= (1 + 0.015)  # 1.5% growth
-                    input_data_adjusted['HPI'] *= (1 + average_increase_percentage / 100)  # Apply average increase (as a percentage)
+                    input_data_adjusted['Population'] *= (1 + 0.01 * year)  # 1% growth per year
+                    input_data_adjusted['Average income excluding zeros'] *= (1 + 0.02 * year)  # 2% growth per year
+                    input_data_adjusted['Median income excluding zeros'] *= (1 + 0.015 * year)  # 1.5% growth per year
+                    input_data_adjusted['HPI'] *= (1 + average_increase_percentage / 100 * year)  # Apply average increase (as a percentage)
                     
                     # Debug output
                     st.write(f'Year {year} Adjusted Data:')
