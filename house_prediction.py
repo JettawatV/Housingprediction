@@ -18,9 +18,10 @@ with open('preprocessor.pkl', 'rb') as f:
     preprocessor = pickle.load(f)
 
 model = load_zip_pipeline('xgboost_pipeline.zip', 'xgboost_pipeline.pkl')
-dataset = pd.read_csv('housing.csv')  
-# Load average percentage increase dataset
-average_increase = pd.read_csv('average_increase.csv')  # Replace with your file path
+
+# Load your datasets
+dataset = pd.read_csv('housing.csv')  # Replace with your dataset path
+average_increase = pd.read_csv('average_increase.csv')  # Replace with your average increase CSV path
 
 # Verify if the loaded object is a valid model
 if not hasattr(model, 'predict'):
@@ -38,6 +39,20 @@ area = st.selectbox('Select Area', dataset['Area'].unique())
 
 # Slider for number of years
 years = st.slider('Select Number of Years to Predict', min_value=1, max_value=10, value=1)
+
+# Get average increase for the given house type
+def get_average_increase(house_type, province, area):
+    try:
+        return average_increase[
+            (average_increase['House_Type'] == house_type) &
+            (average_increase['Province'] == province) &
+            (average_increase['Area'] == area)
+        ]['Percentage_Increase'].values[0]
+    except IndexError:
+        st.error('No average increase data available for the selected inputs.')
+        return None
+
+average_increase_percentage = get_average_increase(house_type, province, area)
 
 # Get features
 def get_features(house_type, province, area):
@@ -90,34 +105,32 @@ input_data = get_features(house_type, province, area)
 # Predict button
 if st.button('Predict Benchmark Value'):
     if input_data is not None:
-        try:
-            # Check if preprocessor is already fitted
-            if not hasattr(preprocessor, 'transformers_'):
-                st.error('Preprocessor is not fitted yet. Please fit the preprocessor before using it.')
-            else:
-                # Preprocess the input data
-                input_data_processed = preprocessor.transform(input_data)
-
+        if average_increase_percentage is not None:
+            try:
                 # Make initial prediction
-                initial_prediction = model.predict(input_data_processed)[0]
+                predictions = []
+                for year in range(1, years + 1):
+                    # Adjust features for each year (e.g., applying growth factors)
+                    input_data_adjusted = input_data.copy()
+                    input_data_adjusted['Population'] *= (1 + 0.01 * year)  # 1% growth per year
+                    input_data_adjusted['Average income excluding zeros'] *= (1 + 0.02 * year)  # 2% growth per year
+                    input_data_adjusted['Median income excluding zeros'] *= (1 + 0.015 * year)  # 1.5% growth per year
+                    input_data_adjusted['HPI'] *= (1 + average_increase_percentage * year)  # Apply average increase
+                    
+                    # Preprocess the adjusted input data
+                    input_data_processed = preprocessor.transform(input_data_adjusted)
+
+                    # Make prediction for the adjusted data
+                    prediction = model.predict(input_data_processed)[0]
+                    
+                    predictions.append(prediction)
                 
-                # Calculate adjusted prediction based on percentage increase
-                avg_increase_row = average_increase[
-                    (average_increase['House_Type'] == house_type) &
-                    (average_increase['Area'] == area) &
-                    (average_increase['Province'] == province)
-                ]
-
-                if not avg_increase_row.empty:
-                    avg_increase = avg_increase_row['Percentage_Increase'].values[0]
-                    adjusted_prediction = initial_prediction * ((1 + avg_increase / 100) ** years)
-                else:
-                    st.error('No average percentage increase data available for the selected inputs.')
-                    adjusted_prediction = initial_prediction
-
-                # Display prediction
-                st.write(f'Predicted Benchmark Value for year {years}: {adjusted_prediction:.2f}')
-        except Exception as e:
-            st.error(f'Error making prediction: {e}')
+                # Display predictions for each year
+                for i, prediction in enumerate(predictions, 1):
+                    st.write(f'Predicted Benchmark Value for year {i}: {prediction:.2f}')
+            except Exception as e:
+                st.error(f'Error making prediction: {e}')
+        else:
+            st.error('Error: Average increase percentage is None.')
     else:
         st.error('Error: Input data is None.')
