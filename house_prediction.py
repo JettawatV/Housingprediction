@@ -133,6 +133,9 @@ if st.button('Predict Benchmark Value'):
                     # Make prediction for the adjusted data
                     prediction = model.predict(input_data_processed)[0]
                     
+                    # Debug output
+                    st.write(f'Prediction for Year {year}: {prediction}')
+                    
                     predictions.append(prediction)
                 
                 # Display predictions for each year
