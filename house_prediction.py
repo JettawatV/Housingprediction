@@ -95,18 +95,23 @@ if st.button('Predict Benchmark Value'):
             if not hasattr(preprocessor, 'transformers_'):
                 st.error('Preprocessor is not fitted yet. Please fit the preprocessor before using it.')
             else:
-                # Preprocess the input data
-                input_data_processed = preprocessor.transform(input_data)
-                
                 # Initialize an empty list to store predictions
                 future_predictions = []
                 
                 # Make predictions for each year in the future
                 for year in range(1, years + 1):
+                    # Adjust features for each year (e.g., applying growth factors)
+                    input_data_adjusted = input_data.copy()
+                    input_data_adjusted['Population'] *= (1 + 0.01 * year)  # 1% growth per year
+                    input_data_adjusted['Average income excluding zeros'] *= (1 + 0.02 * year)  # 2% growth per year
+                    input_data_adjusted['Median income excluding zeros'] *= (1 + 0.015 * year)  # 1.5% growth per year
+                    
+                    # Preprocess the input data
+                    input_data_processed = preprocessor.transform(input_data_adjusted)
+                    
+                    # Make prediction
                     prediction = model.predict(input_data_processed)
                     future_predictions.append(prediction[0])
-                    # Optionally, update input_data_processed to account for changes in features over time
-                    # For simplicity, we're assuming the features remain constant over time
 
                 # Display predictions
                 for i, prediction in enumerate(future_predictions):
