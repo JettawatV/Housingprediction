@@ -106,8 +106,8 @@ if st.button('Predict Benchmark Value'):
             try:
                 # Make prediction
                 # Split the dataset into features and target variable
-                X = inputdata[numeric_features + categorical_features]
-                y = inputdata['Benchmark']  # Assuming 'Benchmark' is your target variable
+                X = input_data[numeric_features + categorical_features]
+                y = input_data['Benchmark']  # Assuming 'Benchmark' is your target variable
                 pipeline.fit(X,y)
                 prediction = pipeline.predict(input_data)
                 st.write(f'Predicted Benchmark Value: {prediction[0]}')
