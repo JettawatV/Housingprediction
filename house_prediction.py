@@ -25,6 +25,15 @@ dataset = pd.read_csv('housing.csv')  # Replace with the correct path to your da
 # Load the saved XGBoost model pipeline
 pipeline = load_zip_pipeline('xgboost_pipeline.zip','xgboost_pipeline.pkl')
 
+numeric_features = [
+    'Average income excluding zeros', 'Median income excluding zeros', 'Prime rate',
+    '5-year personal fixed term', 'Employment', 'Employment rate', 'Labour force',
+    'Population', 'Unemployment', 'Unemployment rate', 'All-items', 'Gasoline',
+    'Goods', 'Household operations, furnishings and equipment', 'Shelter', 'Transportation',
+    'Emigrants', 'Immigrants', 'Net emigration', 'Net non-permanent residents',
+    'Net temporary emigration', 'Returning emigrants']
+
+categorical_features = ['House_Type', 'Area', 'Province']
 
 # Verify if the loaded object is a pipeline
 if not hasattr(pipeline, 'predict'):
@@ -96,7 +105,10 @@ if st.button('Predict Benchmark Value'):
         if hasattr(pipeline, 'predict'):
             try:
                 # Make prediction
-                pipeline.fit(input_data)
+                # Split the dataset into features and target variable
+                X = inputdata[numeric_features + categorical_features]
+                y = inputdata['Benchmark']  # Assuming 'Benchmark' is your target variable
+                pipeline.fit(X,y)
                 prediction = pipeline.predict(input_data)
                 st.write(f'Predicted Benchmark Value: {prediction[0]}')
             except Exception as e:
