@@ -25,8 +25,8 @@ dataset = pd.read_csv('housing.csv')  # Replace with the correct path to your da
 # Load the saved XGBoost model pipeline
 zip_path = 'xgboost_pipeline.zip'  # Path to the compressed ZIP file
 pipeline_file_name = 'xgboost_pipeline.pkl'  # Name of the file inside the ZIP
-model = xgb.XGBRegressor(colsample_bytree=1.0, learning_rate=0.1, max_depth=10, n_estimators=500, subsample=1.0)
-pipeline = model.load_model('xgboost_model.json')
+model = load_zip_pipeline(zip_path, file_name)
+pipeline = 'xgboost_pipeline.pkl'
 
 # Verify if the loaded object is a pipeline
 if not hasattr(pipeline, 'predict'):
