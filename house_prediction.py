@@ -8,6 +8,7 @@ from sklearn.impute import KNNImputer
 
 # Load your pre-trained XGBoost model
 # (Ensure you have trained and saved the model earlier)
+DataFrame = pd.read_csv("C:/Users/Jettawat/OneDrive/Desktop/Placement/Full Data with Date.csv")
 model = xgb.XGBRegressor(colsample_bytree=1.0, learning_rate=0.1, max_depth=10, n_estimators=500, subsample=1.0)
 model.load_model('xgboost_model.json')  # Load the model from a file
 
