@@ -27,6 +27,12 @@ zip_path = 'xgboost_pipeline.zip'  # Path to the compressed ZIP file
 pipeline_file_name = 'xgboost_pipeline.pkl'  # Name of the file inside the ZIP
 pipeline = load_zip_pipeline(zip_path, pipeline_file_name)
 
+# Verify if the loaded object is a pipeline
+if not hasattr(pipeline, 'predict'):
+    st.error('Loaded object is not a valid scikit-learn pipeline or model.')
+else:
+    st.success('Model loaded successfully.')
+
 # Streamlit app code
 st.title('Housing Benchmark Prediction')
 
@@ -88,11 +94,14 @@ input_data = get_features(house_type, province, area)
 # Predict button
 if st.button('Predict Benchmark Value'):
     if input_data is not None:
-        # Make prediction
-        try:
-            prediction = pipeline.predict(input_data)
-            st.write(f'Predicted Benchmark Value: {prediction[0]}')
-        except Exception as e:
-            st.error(f'Error making prediction: {e}')
+        if hasattr(pipeline, 'predict'):
+            try:
+                # Make prediction
+                prediction = pipeline.predict(input_data)
+                st.write(f'Predicted Benchmark Value: {prediction[0]}')
+            except Exception as e:
+                st.error(f'Error making prediction: {e}')
+        else:
+            st.error('Error: Loaded object is not a valid scikit-learn pipeline or model.')
     else:
         st.error('Error: Input data is None.')
