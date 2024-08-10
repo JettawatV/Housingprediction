@@ -54,6 +54,28 @@ def get_average_increase(house_type, province, area):
 
 average_increase_percentage = get_average_increase(house_type, province, area)
 
+# Growth rates for each feature
+growth_rates = {
+    'Prime rate': 0.005,  # 0.5% per year
+    '5-year personal fixed term': 0.007,  # 0.7% per year
+    'Employment': 0.01,  # 1% per year
+    'Population': 0.01,  # 1% per year
+    'Unemployment': 0.01,  # 1% per year
+    'Unemployment rate': 0.01,  # 1% per year
+    'All-items': 0.01,  # 1% per year
+    'Gasoline': 0.01,  # 1% per year
+    'Goods': 0.01,  # 1% per year
+    'Household operations, furnishings and equipment': 0.01,  # 1% per year
+    'Shelter': 0.01,  # 1% per year
+    'Transportation': 0.01,  # 1% per year
+    'Emigrants': 0.01,  # 1% per year
+    'Immigrants': 0.01,  # 1% per year
+    'Net emigration': 0.01,  # 1% per year
+    'Net non-permanent residents': 0.01,  # 1% per year
+    'Net temporary emigration': 0.01,  # 1% per year
+    'Returning emigrants': 0.01,  # 1% per year
+}
+
 # Get features
 def get_features(house_type, province, area):
     # Filter dataset based on user input
@@ -76,8 +98,6 @@ def get_features(house_type, province, area):
         'House_Type': [house_type],
         'Province': [province],
         'Area': [area],
-        'Average income excluding zeros': [latest_data['Average income excluding zeros']],
-        'Median income excluding zeros': [latest_data['Median income excluding zeros']],
         'Prime rate': [latest_data['Prime rate']],
         '5-year personal fixed term': [latest_data['5-year personal fixed term']],
         'Employment': [latest_data['Employment']],
@@ -113,11 +133,14 @@ if st.button('Predict Benchmark Value'):
                     # Adjust features for each year (e.g., applying growth factors)
                     input_data_adjusted = input_data.copy()
                     
-                    # Apply percentage increases
-                    input_data_adjusted['Population'] *= (1 + 0.01 * year)  # 1% growth per year
-                    input_data_adjusted['Average income excluding zeros'] *= (1 + 0.02 * year)  # 2% growth per year
-                    input_data_adjusted['Median income excluding zeros'] *= (1 + 0.015 * year)  # 1.5% growth per year
-                    input_data_adjusted['HPI'] *= (1 + average_increase_percentage / 100 * year)  # Apply average increase (as a percentage)
+                    # Apply percentage increases to all features
+                    for feature, growth_rate in growth_rates.items():
+                        if feature in input_data_adjusted.columns:
+                            input_data_adjusted[feature] *= (1 + growth_rate * year)  # Apply growth rate (as a percentage)
+                    
+                    # Apply average increase percentage to HPI
+                    if 'HPI' in input_data_adjusted.columns:
+                        input_data_adjusted['HPI'] *= (1 + average_increase_percentage / 100 * year)  # Apply average increase (as a percentage)
                     
                     # Debug output
                     st.write(f'Year {year} Adjusted Data:')
