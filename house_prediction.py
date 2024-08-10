@@ -5,7 +5,6 @@ import pickle
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
-import xgboost as xgb
 
 # Function to load the compressed model
 def load_zip_pipeline(zip_path, file_name):
@@ -17,22 +16,17 @@ def load_zip_pipeline(zip_path, file_name):
 # Load your dataset (update with your dataset path)
 dataset = pd.read_csv('housing.csv')  # Replace with the correct path to your dataset
 
-# Load the saved XGBoost model and preprocessor
-model = load_zip_pipeline('xgboost_pipeline.zip','xgboost_pipeline.pkl')
-
+# Load the preprocessor and model
 with open('preprocessor.pkl', 'rb') as f:
     preprocessor = pickle.load(f)
 
-# Define feature categories
-numeric_features = [
-    'Average income excluding zeros', 'Median income excluding zeros', 'Prime rate',
-    '5-year personal fixed term', 'Employment', 'Employment rate', 'Labour force',
-    'Population', 'Unemployment', 'Unemployment rate', 'All-items', 'Gasoline',
-    'Goods', 'Household operations, furnishings and equipment', 'Shelter', 'Transportation',
-    'Emigrants', 'Immigrants', 'Net emigration', 'Net non-permanent residents',
-    'Net temporary emigration', 'Returning emigrants']
+model = load_zip_pipeline('xgboost_pipeline.zip', 'xgboost_pipeline.pkl')
 
-categorical_features = ['House_Type', 'Area', 'Province']
+# Verify if the loaded object is a valid model
+if not hasattr(model, 'predict'):
+    st.error('Loaded object is not a valid scikit-learn model.')
+else:
+    st.success('Model loaded successfully.')
 
 # Streamlit app code
 st.title('Housing Benchmark Prediction')
@@ -42,7 +36,7 @@ house_type = st.selectbox('Select House Type', dataset['House_Type'].unique())
 province = st.selectbox('Select Province', dataset['Province'].unique())
 area = st.selectbox('Select Area', dataset['Area'].unique())
 
-# Function to get features based on user input
+# Get features
 def get_features(house_type, province, area):
     # Filter dataset based on user input
     filtered_data = dataset[
@@ -85,23 +79,25 @@ def get_features(house_type, province, area):
         'Net emigration': [latest_data['Net emigration']],
         'Net non-permanent residents': [latest_data['Net non-permanent residents']],
         'Net temporary emigration': [latest_data['Net temporary emigration']],
-        'Returning emigrants': [latest_data['Returning emigrants']],
+        'Returning emigrants': [latest_data['Returning emigrants']]
     })
 
-# Get input data based on user selection
 input_data = get_features(house_type, province, area)
 
-# Predict button
-if st.button('Predict Benchmark Value'):
-    if input_data is not None:
-        try:
-            # Transform input data using the preprocessor
-            input_data_processed = preprocessor.transform(input_data)
-            
-            # Make prediction
-            prediction = model.predict(input_data_processed)
-            st.write(f'Predicted Benchmark Value: {prediction[0]}')
-        except Exception as e:
-            st.error(f'Error making prediction: {e}')
-    else:
-        st.error('Error: Input data is None.')
+# Ensure input data is not None
+if input_data is not None:
+    try:
+        # Preprocess the input data
+        input_data_processed = preprocessor.transform(input_data)
+        
+        # Make prediction
+        prediction = model.predict(input_data_processed)
+        
+        # Display prediction
+        st.write(f'Predicted Benchmark Value: {prediction[0]}')
+    except Exception as e:
+        st.error(f'Error making prediction: {e}')
+else:
+    st.error('Error: Input data is None.')
+
+# Streamlit app ends here
