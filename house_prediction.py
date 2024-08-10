@@ -23,10 +23,8 @@ def load_zip_pipeline(zip_path, file_name):
 dataset = pd.read_csv('housing.csv')  # Replace with the correct path to your dataset
 
 # Load the saved XGBoost model pipeline
-zip_path = 'xgboost_pipeline.zip'  # Path to the compressed ZIP file
-pipeline_file_name = 'xgboost_pipeline.pkl'  # Name of the file inside the ZIP
-model = load_zip_pipeline(zip_path, pipeline_file_name)
-pipeline = model
+pipeline = load_zip_pipeline('xgboost_pipeline.zip','xgboost_pipeline.pkl')
+
 
 # Verify if the loaded object is a pipeline
 if not hasattr(pipeline, 'predict'):
