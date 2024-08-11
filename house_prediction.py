@@ -19,7 +19,7 @@ dataset = pd.read_csv('housing.csv')  # Replace with your dataset path
 average_increase = pd.read_csv('average_increase.csv')  # Replace with your average increase CSV path
 
 # Streamlit app code
-st.title('Housing Prices Prediction Based on HPI')
+st.title('Housing Prices Prediction')
 
 # Select Province
 province = st.selectbox('Select Province', dataset['Province'].unique())
@@ -114,7 +114,7 @@ if st.button('Predict Housing Price Value'):
                     'Predicted Benchmark Value': predictions
                 })
                 
-                fig = px.line(df_plot, x='Year', y='Predicted Benchmark Value', markers=True, title='Predicted Benchmark Value Over Years')
+                fig = px.line(df_plot, x='Year', y='Predicted Benchmark Value', markers=True, title='Predicted Housing Price Benchmark Value Over Years')
                 fig.update_traces(
                     mode='lines+markers+text',
                     text=[f'{value:.2f}' for value in df_plot['Predicted Benchmark Value']],
@@ -123,7 +123,7 @@ if st.button('Predict Housing Price Value'):
                 )
                 fig.update_layout(
                     xaxis_title='Year',
-                    yaxis_title='Predicted Benchmark Value',
+                    yaxis_title='Predicted Housing Price Benchmark Value',
                     template='plotly_white'
                 )
                 
