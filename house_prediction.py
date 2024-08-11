@@ -7,18 +7,14 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 import plotly.express as px
 
-# Function to load the compressed model
-def load_zip_pipeline(zip_path, file_name):
-    with zipfile.ZipFile(zip_path, 'r') as z:
-        with z.open(file_name) as f:
-            model = pickle.load(f)
+# Function to load the model
+def load_model(model_path):
+    with open(model_path, 'rb') as f:
+        model = pickle.load(f)
     return model
 
-# Load the preprocessor and model
-with open('preprocessor.pkl', 'rb') as f:
-    preprocessor = pickle.load(f)
-
-model = load_zip_pipeline('xgboost_pipeline.zip', 'xgboost_pipeline.pkl')
+# Load the model
+model = load_model('hpi_model.pkl')
 
 # Load your datasets
 dataset = pd.read_csv('housing.csv')  # Replace with your dataset path
@@ -62,8 +58,7 @@ def get_latest_hpi(house_type, province, area):
         return None
     
     # Get the most recent data (or handle it accordingly)
-    latest_data = filtered_data.iloc[-1]
-    return latest_data['HPI']
+    return filtered_data.iloc[-1]['HPI']
 
 latest_hpi = get_latest_hpi(house_type, province, area)
 
@@ -79,16 +74,13 @@ if st.button('Predict Housing Price Value'):
                     # Adjust HPI for each year
                     adjusted_hpi = latest_hpi * (1 + average_increase_percentage / 100 * year)
                     
-                    # Create DataFrame for prediction
+                    # Create a DataFrame with only the HPI value
                     input_data_adjusted = pd.DataFrame({
                         'HPI': [adjusted_hpi]
                     })
                     
-                    # Preprocess the adjusted input data
-                    input_data_processed = preprocessor.transform(input_data_adjusted)
-                    
                     # Make prediction for the adjusted data
-                    prediction = model.predict(input_data_processed)[0]
+                    prediction = model.predict(input_data_adjusted)[0]
                     predictions.append(prediction)
                 
                 # Plot predictions
@@ -116,4 +108,4 @@ if st.button('Predict Housing Price Value'):
         else:
             st.error('Error: Average increase percentage is None.')
     else:
-        st.error('Error: Latest HPI data is None.')
+        st.error('Error: Latest HPI is None.')
