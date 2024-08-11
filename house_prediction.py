@@ -5,6 +5,7 @@ import pickle
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
+import matplotlib.pyplot as plt
 
 # Function to load the compressed model
 def load_zip_pipeline(zip_path, file_name):
@@ -22,12 +23,6 @@ model = load_zip_pipeline('xgboost_pipeline.zip', 'xgboost_pipeline.pkl')
 # Load your datasets
 dataset = pd.read_csv('housing.csv')  # Replace with your dataset path
 average_increase = pd.read_csv('average_increase.csv')  # Replace with your average increase CSV path
-
-# Verify if the loaded object is a valid model
-if not hasattr(model, 'predict'):
-    st.error('Loaded object is not a valid scikit-learn model.')
-else:
-    st.success('Model loaded successfully.')
 
 # Streamlit app code
 st.title('Housing Benchmark Prediction')
@@ -133,7 +128,9 @@ if st.button('Predict Benchmark Value'):
         if average_increase_percentage is not None:
             try:
                 predictions = []
-                for year in range(1, years + 1):
+                years_range = list(range(1, years + 1))
+                
+                for year in years_range:
                     # Adjust features for each year (e.g., applying growth factors)
                     input_data_adjusted = input_data.copy()
                     
@@ -146,28 +143,24 @@ if st.button('Predict Benchmark Value'):
                     if 'HPI' in input_data_adjusted.columns:
                         input_data_adjusted['HPI'] *= (1 + average_increase_percentage / 100 * year)  # Apply average increase (as a percentage)
                     
-                    # Debug output
-                    st.write(f'Year {year} Adjusted Data:')
-                    st.write(input_data_adjusted)
-                    
                     # Preprocess the adjusted input data
                     input_data_processed = preprocessor.transform(input_data_adjusted)
                     
-                    # Debug output
-                    st.write(f'Processed Data for Year {year}:')
-                    st.write(input_data_processed)
-                    
                     # Make prediction for the adjusted data
                     prediction = model.predict(input_data_processed)[0]
-                    
-                    # Debug output
-                    st.write(f'Prediction for Year {year}: {prediction}')
-                    
                     predictions.append(prediction)
                 
-                # Display predictions for each year
-                for i, prediction in enumerate(predictions, 1):
-                    st.write(f'Predicted Benchmark Value for year {i}: {prediction:.2f}')
+                # Plot predictions
+                plt.figure(figsize=(10, 6))
+                plt.plot(years_range, predictions, marker='o', linestyle='-', color='b')
+                plt.title('Predicted Benchmark Value Over Years')
+                plt.xlabel('Year')
+                plt.ylabel('Predicted Benchmark Value')
+                plt.grid(True)
+                plt.xticks(years_range)
+                plt.tight_layout()
+                
+                st.pyplot(plt)
             except Exception as e:
                 st.error(f'Error making prediction: {e}')
         else:
