@@ -2,27 +2,17 @@ import streamlit as st
 import pandas as pd
 import pickle
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.compose import ColumnTransformer
-from sklearn.impute import SimpleImputer
-from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 import plotly.express as px
-import numpy as np
-import zipfile
 
-def load_model(zip_path, model_filename):
-    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-        # Extract the model file
-        zip_ref.extractall()
-    
-    # Load the model from the extracted file
-    with open(model_filename, 'rb') as f:
+# Function to load the model
+def load_model(model_path):
+    with open(model_path, 'rb') as f:
         model = pickle.load(f)
-    
     return model
 
 # Load the model
-model = load_model('second_model.zip', 'second_model.pkl')
+model = load_model('hpi_model.pkl')
 
 # Load your datasets
 dataset = pd.read_csv('housing.csv')  # Replace with your dataset path
@@ -88,16 +78,7 @@ default_values = {
     "Average income excluding zeros": 0.0
 }
 
-# Encode categorical data using OneHotEncoder
-categorical_features = ['House_Type', 'Province', 'Area']
-numerical_features = list(default_values.keys()) + ['HPI']
-
-preprocessor = ColumnTransformer(
-    transformers=[
-        ('num', SimpleImputer(strategy='constant', fill_value=0), numerical_features),
-        ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_features)
-    ])
-
+# Predict button
 if st.button('Predict Housing Price Value'):
     if latest_hpi is not None:
         if average_increase_percentage is not None:
@@ -112,17 +93,19 @@ if st.button('Predict Housing Price Value'):
                     # Create a DataFrame with the specified feature values
                     input_data_adjusted = pd.DataFrame({
                         'HPI': [adjusted_hpi],
-                        **default_values,
-                        'House_Type': [house_type],
-                        'Province': [province],
-                        'Area': [area]
+                        'Net temporary emigration': [default_values["Net temporary emigration"]],
+                        'Net emigration': [default_values["Net emigration"]],
+                        'Emigrants': [default_values["Emigrants"]],
+                        'Shelter': [default_values["Shelter"]],
+                        'Unemployment': [default_values["Unemployment"]],
+                        'Population': [default_values["Population"]],
+                        'Labour force': [default_values["Labour force"]],
+                        'Employment': [default_values["Employment"]],
+                        'Average income excluding zeros': [default_values["Average income excluding zeros"]]
                     })
                     
-                    # Apply the preprocessor to the input data
-                    input_data_preprocessed = preprocessor.fit_transform(input_data_adjusted)
-                    
                     # Make prediction for the adjusted data
-                    prediction = model.predict(input_data_preprocessed)[0]
+                    prediction = model.predict(input_data_adjusted)[0]
                     predictions.append(prediction)
                 
                 # Plot predictions
