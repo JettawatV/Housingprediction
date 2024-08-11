@@ -128,4 +128,4 @@ if st.button('Predict Housing Price Value'):
         else:
             st.error('Error: Average increase percentage is None.')
     else:
-        st.error('Error: Latest HPI is None.'
+        st.error('Error: Latest HPI is None.')
