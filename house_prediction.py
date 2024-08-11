@@ -1,10 +1,7 @@
 import streamlit as st
 import pandas as pd
-import zipfile
 import pickle
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.preprocessing import StandardScaler
 import plotly.express as px
 
 # Function to load the model
@@ -21,7 +18,7 @@ dataset = pd.read_csv('housing.csv')  # Replace with your dataset path
 average_increase = pd.read_csv('average_increase.csv')  # Replace with your average increase CSV path
 
 # Streamlit app code
-st.title('Housing Prices Prediction Based on HPI')
+st.title('Housing Prices Prediction Based on HPI and Other Features')
 
 # Input fields
 house_type = st.selectbox('Select House Type', dataset['House_Type'].unique())
@@ -45,8 +42,8 @@ def get_average_increase(house_type, province, area):
 
 average_increase_percentage = get_average_increase(house_type, province, area)
 
-# Get the most recent HPI data
-def get_latest_hpi(house_type, province, area):
+# Get the most recent data for all features
+def get_latest_features(house_type, province, area):
     filtered_data = dataset[
         (dataset['House_Type'] == house_type) &
         (dataset['Province'] == province) &
@@ -58,29 +55,41 @@ def get_latest_hpi(house_type, province, area):
         return None
     
     # Get the most recent data (or handle it accordingly)
-    return filtered_data.iloc[-1]['HPI']
+    latest_data = filtered_data.iloc[-1]
+    return latest_data
 
-latest_hpi = get_latest_hpi(house_type, province, area)
+latest_features = get_latest_features(house_type, province, area)
 
 # Predict button
 if st.button('Predict Housing Price Value'):
-    if latest_hpi is not None:
+    if latest_features is not None:
         if average_increase_percentage is not None:
             try:
                 predictions = []
                 years_range = list(range(1, years + 1))
                 
                 for year in years_range:
-                    # Adjust HPI for each year
-                    adjusted_hpi = latest_hpi * (1 + average_increase_percentage / 100 * year)
+                    # Adjust features for each year
+                    adjusted_features = latest_features.copy()
+                    adjusted_features['HPI'] *= (1 + average_increase_percentage / 100 * year)
+                    adjusted_features['Net temporary emigration'] *= (1 + average_increase_percentage / 100 * year)
+                    adjusted_features['Net emigration'] *= (1 + average_increase_percentage / 100 * year)
+                    adjusted_features['Emigrants'] *= (1 + average_increase_percentage / 100 * year)
+                    adjusted_features['Shelter'] *= (1 + average_increase_percentage / 100 * year)
+                    adjusted_features['Unemployment'] *= (1 + average_increase_percentage / 100 * year)
+                    adjusted_features['Population'] *= (1 + average_increase_percentage / 100 * year)
+                    adjusted_features['Labour force'] *= (1 + average_increase_percentage / 100 * year)
+                    adjusted_features['Employment'] *= (1 + average_increase_percentage / 100 * year)
+                    adjusted_features['Average income excluding zeros'] *= (1 + average_increase_percentage / 100 * year)
                     
-                    # Create a DataFrame with only the HPI value
-                    input_data_adjusted = pd.DataFrame({
-                        'HPI': [adjusted_hpi]
-                    })
+                    # Create a DataFrame with adjusted features
+                    input_data_adjusted = pd.DataFrame([adjusted_features])
+                    
+                    # Preprocess the adjusted input data
+                    input_data_processed = pd.DataFrame(StandardScaler().fit_transform(input_data_adjusted), columns=input_data_adjusted.columns)
                     
                     # Make prediction for the adjusted data
-                    prediction = model.predict(input_data_adjusted)[0]
+                    prediction = model.predict(input_data_processed)[0]
                     predictions.append(prediction)
                 
                 # Plot predictions
@@ -108,4 +117,4 @@ if st.button('Predict Housing Price Value'):
         else:
             st.error('Error: Average increase percentage is None.')
     else:
-        st.error('Error: Latest HPI is None.')
+        st.error('Error: Latest features are None.')
