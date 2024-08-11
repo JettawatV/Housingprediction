@@ -66,15 +66,15 @@ numerical_features = [
     "Unemployment", "Population", "Labour force", "Employment", "Average income excluding zeros"
 ]
 growth_percentages = {
-    "Net temporary emigration": 0.5,
-    "Net emigration": 0.5,
-    "Emigrants": 0.5,
-    "Shelter": 0.5,
-    "Unemployment": 0.5,
-    "Population": 0.5,
+    "Net temporary emigration": 0.0,
+    "Net emigration": 0.0,
+    "Emigrants": 0.79,
+    "Shelter": 0.01,
+    "Unemployment": 0.08,
+    "Population": 0.04,
     "Labour force": 0.5,
-    "Employment": 0.5,
-    "Average income excluding zeros": 0.5
+    "Employment": 0.05,
+    "Average income excluding zeros": 0.0
 }
 
 # Predict button
