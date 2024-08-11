@@ -11,8 +11,14 @@ def load_model(model_path):
     with open(model_path, 'rb') as f:
         model = pickle.load(f)
     return model
+    
+def load_model(model_path):
+    with open(model_path, 'rb') as f:
+        model = pickle.load(f)
+    return model
 
 # Load the model
+preprocessor = load_model('preprocessor.pkl')
 model = load_model('hpi_model.pkl')
 
 # Load your datasets
@@ -73,7 +79,7 @@ if st.button('Predict Housing Price Value'):
         if average_increase_percentage is not None:
             try:
                 # Prepare the input data
-                input_data = pd.DataFrame([latest_features], columns=numerical_features)
+                input_data = pd.DataFrame([latest_features], columns=numerical_features + numerical_features)
                 
                 # Adjust numerical features for each year
                 predictions = []
