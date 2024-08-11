@@ -19,7 +19,7 @@ dataset = pd.read_csv('housing.csv')  # Replace with your dataset path
 average_increase = pd.read_csv('average_increase.csv')  # Replace with your average increase CSV path
 
 # Streamlit app code
-st.title('Housing Prices Prediction')
+st.title('Housing Prices Prediction Based on HPI')
 
 # Input fields
 house_type = st.selectbox('Select House Type', dataset['House_Type'].unique())
@@ -79,11 +79,11 @@ if st.button('Predict Housing Price Value'):
         if average_increase_percentage is not None:
             try:
                 predictions = []
-                years_range = list(range(1, years + 1))
+                years_range = list(range(2024, 2024 + years))
                 
                 for year in years_range:
                     # Adjust HPI for each year
-                    adjusted_hpi = latest_hpi * (1 + average_increase_percentage / 100 * year)
+                    adjusted_hpi = latest_hpi * (1 + average_increase_percentage / 100 * (year - 2024))
                     
                     # Create a DataFrame with the specified feature values
                     input_data_adjusted = pd.DataFrame({
@@ -128,4 +128,4 @@ if st.button('Predict Housing Price Value'):
         else:
             st.error('Error: Average increase percentage is None.')
     else:
-        st.error('Error: Latest HPI is None.')
+        st.error('Error: Latest HPI is None.'
