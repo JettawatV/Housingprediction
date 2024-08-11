@@ -25,7 +25,7 @@ dataset = pd.read_csv('housing.csv')  # Replace with your dataset path
 average_increase = pd.read_csv('average_increase.csv')  # Replace with your average increase CSV path
 
 # Streamlit app code
-st.title('Housing Prices Prediction')
+st.title('Housing Prices Prediction Based on HPI')
 
 # Input fields
 house_type = st.selectbox('Select House Type', dataset['House_Type'].unique())
@@ -49,99 +49,40 @@ def get_average_increase(house_type, province, area):
 
 average_increase_percentage = get_average_increase(house_type, province, area)
 
-# Growth rates for each feature
-growth_rates = {
-    'Prime rate': 0.005,  # 0.5% per year
-    '5-year personal fixed term': 0.007,  # 0.7% per year
-    'Employment': 0.01,  # 1% per year
-    'Population': 0.01,  # 1% per year
-    'Unemployment': 0.01,  # 1% per year
-    'Unemployment rate': 0.01,  # 1% per year
-    'All-items': 0.01,  # 1% per year
-    'Gasoline': 0.01,  # 1% per year
-    'Goods': 0.01,  # 1% per year
-    'Household operations, furnishings and equipment': 0.01,  # 1% per year
-    'Shelter': 0.01,  # 1% per year
-    'Transportation': 0.01,  # 1% per year
-    'Emigrants': 0.01,  # 1% per year
-    'Immigrants': 0.01,  # 1% per year
-    'Net emigration': 0.01,  # 1% per year
-    'Net non-permanent residents': 0.01,  # 1% per year
-    'Net temporary emigration': 0.01,  # 1% per year
-    'Returning emigrants': 0.01,  # 1% per year
-    'Average income excluding zeros': 0.02,  # 2% per year
-    'Median income excluding zeros': 0.015,  # 1.5% per year
-}
-
-# Get features
-def get_features(house_type, province, area):
-    # Filter dataset based on user input
+# Get the most recent HPI data
+def get_latest_hpi(house_type, province, area):
     filtered_data = dataset[
         (dataset['House_Type'] == house_type) &
         (dataset['Province'] == province) &
         (dataset['Area'] == area)
     ]
     
-    # Handle case where no data is found
     if filtered_data.empty:
         st.error('No data available for the selected inputs.')
         return None
     
     # Get the most recent data (or handle it accordingly)
     latest_data = filtered_data.iloc[-1]
-    
-    # Create a DataFrame with the required features
-    return pd.DataFrame({
-        'House_Type': [house_type],
-        'Province': [province],
-        'Area': [area],
-        'Prime rate': [latest_data['Prime rate']],
-        '5-year personal fixed term': [latest_data['5-year personal fixed term']],
-        'Employment': [latest_data['Employment']],
-        'Employment rate': [latest_data['Employment rate']],
-        'Labour force': [latest_data['Labour force']],
-        'Population': [latest_data['Population']],
-        'Unemployment': [latest_data['Unemployment']],
-        'Unemployment rate': [latest_data['Unemployment rate']],
-        'All-items': [latest_data['All-items']],
-        'Gasoline': [latest_data['Gasoline']],
-        'Goods': [latest_data['Goods']],
-        'Household operations, furnishings and equipment': [latest_data['Household operations, furnishings and equipment']],
-        'Shelter': [latest_data['Shelter']],
-        'Transportation': [latest_data['Transportation']],
-        'Emigrants': [latest_data['Emigrants']],
-        'Immigrants': [latest_data['Immigrants']],
-        'Net emigration': [latest_data['Net emigration']],
-        'Net non-permanent residents': [latest_data['Net non-permanent residents']],
-        'Net temporary emigration': [latest_data['Net temporary emigration']],
-        'Returning emigrants': [latest_data['Returning emigrants']],
-        'Average income excluding zeros': [latest_data['Average income excluding zeros']],
-        'Median income excluding zeros': [latest_data['Median income excluding zeros']],
-        'HPI': [latest_data['HPI']]
-    })
+    return latest_data['HPI']
 
-input_data = get_features(house_type, province, area)
+latest_hpi = get_latest_hpi(house_type, province, area)
 
 # Predict button
 if st.button('Predict Housing Price Value'):
-    if input_data is not None:
+    if latest_hpi is not None:
         if average_increase_percentage is not None:
             try:
                 predictions = []
                 years_range = list(range(1, years + 1))
                 
                 for year in years_range:
-                    # Adjust features for each year (e.g., applying growth factors)
-                    input_data_adjusted = input_data.copy()
+                    # Adjust HPI for each year
+                    adjusted_hpi = latest_hpi * (1 + average_increase_percentage / 100 * year)
                     
-                    # Apply percentage increases to all features
-                    for feature, growth_rate in growth_rates.items():
-                        if feature in input_data_adjusted.columns:
-                            input_data_adjusted[feature] *= (1 + growth_rate * year)  # Apply growth rate (as a percentage)
-                    
-                    # Apply average increase percentage to HPI
-                    if 'HPI' in input_data_adjusted.columns:
-                        input_data_adjusted['HPI'] *= (1 + average_increase_percentage / 100 * year)  # Apply average increase (as a percentage)
+                    # Create DataFrame for prediction
+                    input_data_adjusted = pd.DataFrame({
+                        'HPI': [adjusted_hpi]
+                    })
                     
                     # Preprocess the adjusted input data
                     input_data_processed = preprocessor.transform(input_data_adjusted)
@@ -175,4 +116,4 @@ if st.button('Predict Housing Price Value'):
         else:
             st.error('Error: Average increase percentage is None.')
     else:
-        st.error('Error: Input data is None.')
+        st.error('Error: Latest HPI data is None.')
