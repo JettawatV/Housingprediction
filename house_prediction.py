@@ -8,6 +8,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
 import plotly.express as px
 import numpy as np
+import zipfile
 
 def load_model(zip_path, model_filename):
     with zipfile.ZipFile(zip_path, 'r') as zip_ref:
