@@ -159,7 +159,7 @@ if st.button('Predict Benchmark Value'):
                 fig = px.line(df_plot, x='Year', y='Predicted Benchmark Value', markers=True, title='Predicted Benchmark Value Over Years')
                 fig.update_traces(
                     mode='lines+markers+text',
-                    text=df_plot['Predicted Benchmark Value'],
+                    text=[f'{value:.2f}' for value in df_plot['Predicted Benchmark Value']],
                     textposition='top center',
                     marker=dict(size=8, color='blue')
                 )
