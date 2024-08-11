@@ -73,7 +73,7 @@ if st.button('Predict Housing Price Value'):
         if average_increase_percentage is not None:
             try:
                 # Prepare the input data
-                input_data = pd.DataFrame([latest_features], columns=numerical_features + categorical_features)
+                input_data = pd.DataFrame([latest_features], columns=numerical_features)
                 
                 # Adjust numerical features for each year
                 predictions = []
