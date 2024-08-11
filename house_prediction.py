@@ -19,7 +19,7 @@ dataset = pd.read_csv('housing.csv')  # Replace with your dataset path
 average_increase = pd.read_csv('average_increase.csv')  # Replace with your average increase CSV path
 
 # Streamlit app code
-st.title('Housing Prices Prediction')
+st.title('Housing Price Benchmark Value Prediction')
 
 # Select Province
 province = st.selectbox('Select Province', dataset['Province'].unique())
