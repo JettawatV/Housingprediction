@@ -4,4 +4,4 @@ pandas
 datetime
 scikit-learn
 joblib
-mathplotlib
+matplotlib
