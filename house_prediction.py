@@ -21,10 +21,15 @@ average_increase = pd.read_csv('average_increase.csv')  # Replace with your aver
 # Streamlit app code
 st.title('Housing Prices Prediction Based on HPI')
 
+# Select Province
+province = st.selectbox('Select Province', dataset['Province'].unique())
+
+# Filter areas based on the selected province
+areas_in_province = dataset[dataset['Province'] == province]['Area'].unique()
+area = st.selectbox('Select Area', areas_in_province)
+
 # Input fields
 house_type = st.selectbox('Select House Type', dataset['House_Type'].unique())
-province = st.selectbox('Select Province', dataset['Province'].unique())
-area = st.selectbox('Select Area', dataset['Area'].unique())
 
 # Slider for number of years
 years = st.slider('Select Number of Years to Predict', min_value=1, max_value=10, value=1)
