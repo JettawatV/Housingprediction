@@ -5,7 +5,7 @@ import pickle
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
-import matplotlib.pyplot as plt
+import plotly.express as px
 
 # Function to load the compressed model
 def load_zip_pipeline(zip_path, file_name):
@@ -151,16 +151,20 @@ if st.button('Predict Benchmark Value'):
                     predictions.append(prediction)
                 
                 # Plot predictions
-                plt.figure(figsize=(10, 6))
-                plt.plot(years_range, predictions, marker='o', linestyle='-', color='b')
-                plt.title('Predicted Benchmark Value Over Years')
-                plt.xlabel('Year')
-                plt.ylabel('Predicted Benchmark Value')
-                plt.grid(True)
-                plt.xticks(years_range)
-                plt.tight_layout()
+                df_plot = pd.DataFrame({
+                    'Year': years_range,
+                    'Predicted Benchmark Value': predictions
+                })
                 
-                st.pyplot(plt)
+                fig = px.line(df_plot, x='Year', y='Predicted Benchmark Value', markers=True, title='Predicted Benchmark Value Over Years')
+                fig.update_traces(mode='lines+markers', marker=dict(size=8, color='blue'))
+                fig.update_layout(
+                    xaxis_title='Year',
+                    yaxis_title='Predicted Benchmark Value',
+                    template='plotly_white'
+                )
+                
+                st.plotly_chart(fig)
             except Exception as e:
                 st.error(f'Error making prediction: {e}')
         else:
