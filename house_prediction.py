@@ -1,9 +1,7 @@
 import streamlit as st
 import pandas as pd
 import pickle
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 import plotly.express as px
 
 # Function to load the model
@@ -11,14 +9,8 @@ def load_model(model_path):
     with open(model_path, 'rb') as f:
         model = pickle.load(f)
     return model
-    
-def load_model(model_path):
-    with open(model_path, 'rb') as f:
-        model = pickle.load(f)
-    return model
 
 # Load the model
-preprocessor = load_model('preprocessor.pkl')
 model = load_model('hpi_model.pkl')
 
 # Load your datasets
@@ -36,7 +28,7 @@ area = st.selectbox('Select Area', dataset['Area'].unique())
 # Slider for number of years
 years = st.slider('Select Number of Years to Predict', min_value=1, max_value=10, value=1)
 
-# Get average increase for the given house type
+# Get average increase for HPI
 def get_average_increase(house_type, province, area):
     try:
         return average_increase[
@@ -50,7 +42,7 @@ def get_average_increase(house_type, province, area):
 
 average_increase_percentage = get_average_increase(house_type, province, area)
 
-# Get the most recent data for all features
+# Get the most recent data for all numerical features
 def get_latest_features(house_type, province, area):
     filtered_data = dataset[
         (dataset['House_Type'] == house_type) &
@@ -68,10 +60,22 @@ def get_latest_features(house_type, province, area):
 
 latest_features = get_latest_features(house_type, province, area)
 
-# Define categorical and numerical features
-categorical_features = ['House_Type', 'Province', 'Area']
-numerical_features = ['HPI', 'Net temporary emigration', 'Net emigration', 'Emigrants', 'Shelter',
-                      'Unemployment', 'Population', 'Labour force', 'Employment', 'Average income excluding zeros']
+# Define numerical features and their growth percentages
+numerical_features = [
+    "HPI", "Net temporary emigration", "Net emigration", "Emigrants", "Shelter",
+    "Unemployment", "Population", "Labour force", "Employment", "Average income excluding zeros"
+]
+growth_percentages = {
+    "Net temporary emigration": 0.5,
+    "Net emigration": 0.5,
+    "Emigrants": 0.5,
+    "Shelter": 0.5,
+    "Unemployment": 0.5,
+    "Population": 0.5,
+    "Labour force": 0.5,
+    "Employment": 0.5,
+    "Average income excluding zeros": 0.5
+}
 
 # Predict button
 if st.button('Predict Housing Price Value'):
@@ -79,33 +83,28 @@ if st.button('Predict Housing Price Value'):
         if average_increase_percentage is not None:
             try:
                 # Prepare the input data
-                input_data = pd.DataFrame([latest_features], columns=numerical_features + numerical_features)
+                input_data = pd.DataFrame([latest_features], columns=numerical_features)
                 
-                # Adjust numerical features for each year
+                # Initialize a list for predictions
                 predictions = []
                 years_range = list(range(1, years + 1))
                 
                 for year in years_range:
                     adjusted_features = input_data.copy()
-                    adjusted_features['HPI'] *= (1 + average_increase_percentage / 100 * year)
                     
-                    # Adjust other numerical features as well
-                    for feature in numerical_features[1:]:
-                        adjusted_features[feature] *= (1 + average_increase_percentage / 100 * year)
-                    
-                    # Separate categorical and numerical data
-                    X_categorical = adjusted_features[categorical_features]
-                    X_numerical = adjusted_features[numerical_features]
+                    # Apply growth percentage for each feature
+                    for feature in numerical_features:
+                        if feature != "HPI":
+                            growth_rate = growth_percentages.get(feature, 0)
+                            adjusted_features[feature] *= (1 + growth_rate / 100 * year)
+                        else:
+                            # Adjust HPI based on the average increase
+                            adjusted_hpi = adjusted_features["HPI"] * (1 + average_increase_percentage / 100 * year)
+                            adjusted_features["HPI"] = adjusted_hpi
                     
                     # Preprocess the data
-                    preprocessor = ColumnTransformer(
-                        transformers=[
-                            ('num', StandardScaler(), numerical_features),
-                            ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_features)
-                        ]
-                    )
-                    
-                    X_preprocessed = preprocessor.fit_transform(pd.concat([X_numerical, X_categorical], axis=1))
+                    preprocessor = StandardScaler()
+                    X_preprocessed = preprocessor.fit_transform(adjusted_features)
                     
                     # Make prediction for the adjusted data
                     prediction = model.predict(X_preprocessed)[0]
