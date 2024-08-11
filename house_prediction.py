@@ -25,7 +25,7 @@ dataset = pd.read_csv('housing.csv')  # Replace with your dataset path
 average_increase = pd.read_csv('average_increase.csv')  # Replace with your average increase CSV path
 
 # Streamlit app code
-st.title('Housing Benchmark Prediction')
+st.title('Housing Prices Prediction')
 
 # Input fields
 house_type = st.selectbox('Select House Type', dataset['House_Type'].unique())
@@ -123,7 +123,7 @@ def get_features(house_type, province, area):
 input_data = get_features(house_type, province, area)
 
 # Predict button
-if st.button('Predict Benchmark Value'):
+if st.button('Predict Housing Price Value'):
     if input_data is not None:
         if average_increase_percentage is not None:
             try:
