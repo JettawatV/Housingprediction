@@ -1,7 +1,9 @@
 import streamlit as st
 import pandas as pd
 import pickle
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
 import plotly.express as px
 
 # Function to load the model
@@ -60,36 +62,47 @@ def get_latest_features(house_type, province, area):
 
 latest_features = get_latest_features(house_type, province, area)
 
+# Define categorical and numerical features
+categorical_features = ['House_Type', 'Province', 'Area']
+numerical_features = ['HPI', 'Net temporary emigration', 'Net emigration', 'Emigrants', 'Shelter',
+                      'Unemployment', 'Population', 'Labour force', 'Employment', 'Average income excluding zeros']
+
 # Predict button
 if st.button('Predict Housing Price Value'):
     if latest_features is not None:
         if average_increase_percentage is not None:
             try:
+                # Prepare the input data
+                input_data = pd.DataFrame([latest_features], columns=numerical_features + categorical_features)
+                
+                # Adjust numerical features for each year
                 predictions = []
                 years_range = list(range(1, years + 1))
                 
                 for year in years_range:
-                    # Adjust features for each year
-                    adjusted_features = latest_features.copy()
+                    adjusted_features = input_data.copy()
                     adjusted_features['HPI'] *= (1 + average_increase_percentage / 100 * year)
-                    adjusted_features['Net temporary emigration'] *= (1 + average_increase_percentage / 100 * year)
-                    adjusted_features['Net emigration'] *= (1 + average_increase_percentage / 100 * year)
-                    adjusted_features['Emigrants'] *= (1 + average_increase_percentage / 100 * year)
-                    adjusted_features['Shelter'] *= (1 + average_increase_percentage / 100 * year)
-                    adjusted_features['Unemployment'] *= (1 + average_increase_percentage / 100 * year)
-                    adjusted_features['Population'] *= (1 + average_increase_percentage / 100 * year)
-                    adjusted_features['Labour force'] *= (1 + average_increase_percentage / 100 * year)
-                    adjusted_features['Employment'] *= (1 + average_increase_percentage / 100 * year)
-                    adjusted_features['Average income excluding zeros'] *= (1 + average_increase_percentage / 100 * year)
                     
-                    # Create a DataFrame with adjusted features
-                    input_data_adjusted = pd.DataFrame([adjusted_features])
+                    # Adjust other numerical features as well
+                    for feature in numerical_features[1:]:
+                        adjusted_features[feature] *= (1 + average_increase_percentage / 100 * year)
                     
-                    # Preprocess the adjusted input data
-                    input_data_processed = pd.DataFrame(StandardScaler().fit_transform(input_data_adjusted), columns=input_data_adjusted.columns)
+                    # Separate categorical and numerical data
+                    X_categorical = adjusted_features[categorical_features]
+                    X_numerical = adjusted_features[numerical_features]
+                    
+                    # Preprocess the data
+                    preprocessor = ColumnTransformer(
+                        transformers=[
+                            ('num', StandardScaler(), numerical_features),
+                            ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_features)
+                        ]
+                    )
+                    
+                    X_preprocessed = preprocessor.fit_transform(pd.concat([X_numerical, X_categorical], axis=1))
                     
                     # Make prediction for the adjusted data
-                    prediction = model.predict(input_data_processed)[0]
+                    prediction = model.predict(X_preprocessed)[0]
                     predictions.append(prediction)
                 
                 # Plot predictions
