@@ -12,7 +12,7 @@ def load_model(model_path):
     return model
 
 # Load the model
-model = load_model('final_model.pkl')
+model = load_model('hpi_model.pkl')
 
 # Load your datasets
 dataset = pd.read_csv('housing.csv')  # Replace with your dataset path
